@@ -1,25 +1,24 @@
 # include <iostream>
+# include <queue>
 # include <vector>
 # include <set>
-# include <queue>
 # include <string>
 # include "bridge.h"
 using namespace std;
 
-class traces{
-	public:
-		int time;
-		int bridge;
-		char status;
-		message m;
-};
 
 class data_packet{
 public:
-	int source;
-	int destination;
-	char prev;
 	int bridge;
+	char prev;
+	int destination;
+	int source;
+
 };
 
-message UpdateConfig(message m,vector<bridge>& bridge_network);
+// Functions
+
+
+lan lookIntoTable(vector<frow> fwd_table, int d);
+
+void DataForwarding(vector<bridge> &b_network, vector<lan> &l_network, lan &hostlan, int tr, int &timestamp, int s, int d);

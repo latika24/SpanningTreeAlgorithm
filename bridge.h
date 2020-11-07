@@ -1,7 +1,7 @@
 # include <iostream>
+# include <queue>
 # include <vector>
 # include <set>
-# include <queue>
 # include <string>
 using namespace std;
 
@@ -10,7 +10,7 @@ class lan{
     public:
 
         char id;
-        vector<int> adj_bridges;
+        vector<int> adjacent_bridges;
         vector<int> hosts;
         int DP;
         lan()
@@ -21,7 +21,7 @@ class lan{
 };
 
 
-class ftable
+class frow
 {
 	public:
 		int host;
@@ -33,9 +33,9 @@ class bridge{
    public:
 		int id;
 		int root;
-		int root_distance;
-		vector<char> adj_lans;
-		vector<ftable> forwarding_table;
+		vector<frow> fwd_table;
+        int root_distance;
+		vector<char> adjacent_lans;
 		// pair<char,int> RP;
         char RP_lan;
         int RP_bridge;
@@ -49,10 +49,6 @@ class bridge{
 			root_distance = -1;
 		}
 };
-
-
-
-
 
 class message{
 
@@ -70,3 +66,29 @@ class message{
 			lan = '\0';
 		}
 };
+
+class traces{
+	public:
+		int bridge;
+		char status;
+		int time;
+		message m;
+};
+struct messageComparer
+{
+    bool operator()(message const &j1, message const &j2)
+    {
+    	if(j1.destination < j2.destination) return true;
+    	else return false;
+        //compare j1 and j2 and return true or false
+    }
+};
+
+
+// Functions useful for Implementing spanning tree protocol
+
+message UpdateConfig(message m,vector<bridge>& b_network);
+
+set<message,messageComparer> SendMessage(message m,vector<bridge> b_network, vector<lan> l_network);
+
+void SpanningTreeProtocol(vector<bridge> &b_network, vector<lan> &l_network,int tr, int &timestamp);
