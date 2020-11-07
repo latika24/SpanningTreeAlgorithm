@@ -49,6 +49,13 @@ class bridge{
 			root_distance = -1;
 		}
 };
+struct less_than_host
+{
+    inline bool operator() (const frow& f1, const frow& f2)
+    {
+        return (f1.host < f2.host);
+    }
+};
 
 class message{
 

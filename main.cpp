@@ -194,7 +194,11 @@ int main(){
 		{
 			cout<<"B"<<b_network[i].id<<":"<<endl;
 			cout<<"HOST ID | FORWARDING PORT"<<endl;
-			for(int j=b_network[i].fwd_table.size()-1; j>=0; j--)
+
+			sort(b_network[i].fwd_table.begin(), b_network[i].fwd_table.end(), less_than_host());
+
+
+			for(int j=0; j<b_network[i].fwd_table.size(); j++)
 			{
 				frow f = b_network[i].fwd_table[j];
 				cout<<"H"<<f.host<<" | "<<f.fport.id<<endl;
