@@ -36,12 +36,16 @@ class bridge{
 		int root_distance;
 		vector<char> adj_lans;
 		vector<ftable> forwarding_table;
-		pair<char,int> RP;
+		// pair<char,int> RP;
+        char RP_lan;
+        int RP_bridge;
 		bridge()
 		{
 			id = -1;
 			root = id;
-			RP = make_pair('\0',-1);
+			// RP = make_pair('\0',-1);
+            RP_lan = '\0';
+            RP_bridge = -1;
 			root_distance = -1;
 		}
 };

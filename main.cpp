@@ -56,68 +56,73 @@ set<message,messageComparer> SendMessage(message m,vector<bridge> bridge_network
 	return messages;
 }
 
-message UpdateConfig(message m,vector<bridge>& bridge_network)
-{ //(B1,0,B1) destination B2 lan B source B1
-	char lan = m.lan;
-	int root = m.root;
-	int d = m.dist;
-	int destination = m.destination;
-	bridge source = m.source;
+// message UpdateConfig(message m,vector<bridge>& bridge_network)
+// { //(B1,0,B1) destination B2 lan B source B1
+// 	char lan = m.lan;
+// 	int root = m.root;
+// 	int d = m.dist;
+// 	int destination = m.destination;
+// 	bridge source = m.source;
 
-	message return_message;
+// 	message return_message;
 
-	int di;
+// 	int di;
 
-	for(int i=0; i<bridge_network.size();i++)
-	{
-		if(destination == bridge_network[i].id)
-		{
-			di = i;
-		}
-	}
+// 	for(int i=0; i<bridge_network.size();i++)
+// 	{
+// 		if(destination == bridge_network[i].id)
+// 		{
+// 			di = i;
+// 		}
+// 	}
 
-	bridge b = bridge_network[di];
+// 	bridge b = bridge_network[di];
 
-	if(root < b.root)
-	{
-		return_message.root = root;
-		return_message.source=bridge_network[di];
-		return_message.dist = d+1;
+// 	if(root < b.root)
+// 	{
+// 		return_message.root = root;
+// 		return_message.source=bridge_network[di];
+// 		return_message.dist = d+1;
 
-		bridge_network[di].root = root;
-		bridge_network[di].RP = make_pair(lan,source.id);
-		bridge_network[di].root_distance = d+1;
-	}
-	else if(root == b.root && d+1 < bridge_network[di].root_distance)
-	{
-		return_message.root = root;
-		return_message.source=bridge_network[di];
-		return_message.dist = d+1;
+// 		bridge_network[di].root = root;
+// 		bridge_network[di].RP_lan = lan;
+// 		bridge_network[di].RP_bridge = source.id;
+// 		bridge_network[di].root_distance = d+1;
+// 	}
+// 	else if(root == b.root && d+1 < bridge_network[di].root_distance)
+// 	{
+// 		return_message.root = root;
+// 		return_message.source=bridge_network[di];
+// 		return_message.dist = d+1;
 
-		bridge_network[di].root = root;
-		bridge_network[di].RP = make_pair(lan,source.id);
-		bridge_network[di].root_distance = d+1;
-	}
-	else if (root == b.root && d+1 == bridge_network[di].root_distance && source.id<bridge_network[di].RP.second)
-	{
-		return_message.root = root;
-		return_message.source=bridge_network[di];
-		return_message.dist = d+1;
+// 		bridge_network[di].root = root;
+// 		bridge_network[di].RP_lan = lan;
+// 		bridge_network[di].RP_bridge = source.id;
+// 		// bridge_network[di].RP = make_pair(lan,source.id);
+// 		bridge_network[di].root_distance = d+1;
+// 	}
+// 	else if (root == b.root && d+1 == bridge_network[di].root_distance && source.id<bridge_network[di].RP_bridge)
+// 	{
+// 		return_message.root = root;
+// 		return_message.source=bridge_network[di];
+// 		return_message.dist = d+1;
 
-		bridge_network[di].root = root;
-		bridge_network[di].RP = make_pair(lan,source.id);
-		bridge_network[di].root_distance = d+1;
-	}
-	else
-	{
-		return_message.root = 0;//change -1
-		return_message.dist = d+1;
-		return_message.source=bridge_network[di];
-	}
+// 		bridge_network[di].root = root;
+// 		bridge_network[di].RP_lan = lan;
+// 		bridge_network[di].RP_bridge = source.id;
+// 		// bridge_network[di].RP = make_pair(lan,source.id);
+// 		bridge_network[di].root_distance = d+1;
+// 	}
+// 	else
+// 	{
+// 		return_message.root = 0;//change -1
+// 		return_message.dist = d+1;
+// 		return_message.source=bridge_network[di];
+// 	}
 
 
-	return return_message;
-}
+// 	return return_message;
+// }
 
 
 void SpanningTreeProtocol(vector<bridge> &bridge_network, vector<lan> &lan_network,int traceflag, int timestamp){
@@ -316,7 +321,7 @@ int main(){
 			int flag=-1;
 			char c = bridge_network[i].adj_lans[j];
 			cout<<" "<<c<<"-";
-			if(c == bridge_network[i].RP.first) {cout<<"RP";flag=0;}
+			if(c == bridge_network[i].RP_lan) {cout<<"RP";flag=0;}
 			for(int k=0;k<lan_network.size();k++)
 			{
 				if(c==lan_network[k].id && bridge_network[i].id==lan_network[k].DP && flag==-1)
@@ -455,107 +460,111 @@ int main(){
 					}
 				}
 
+                //change possible
 				while(!received.empty())
 				{
 					data_packet data = received.front();
 					received.pop();
+					int datai=0;
 					for(int i=0; i<bridge_network.size();i++)
 					{
 						if(data.bridge == bridge_network[i].id)
 						{
-							lan lookin = lookIntoTable(bridge_network[i].forwarding_table, d);
-							if(lookin.id != '\0')
+							datai = i;
+						}
+					}
+					lan lookin = lookIntoTable(bridge_network[datai].forwarding_table, d);
+					if(lookin.id != '\0')
+					{
+						int f=0;
+						for(int j=0; j<lookin.hosts.size();j++)
+						{
+							if(lookin.hosts[j]==data.destination)
 							{
-								int f=0;
-								for(int j=0; j<lookin.hosts.size();j++)
+								f=1;
+								for(int p=0; p<lookin.adj_bridges.size(); p++)
 								{
-									if(lookin.hosts[j]==data.destination)
+									for(int q=0; q<bridge_network.size(); q++)
 									{
-										f=1;
-										for(int p=0; p<lookin.adj_bridges.size(); p++)
+										if(bridge_network[datai].id!= bridge_network[q].id and bridge_network[q].id == lookin.adj_bridges[p] and lookIntoTable(bridge_network[q].forwarding_table, s).id == '\0')
 										{
-											for(int q=0; q<bridge_network.size(); q++)
-											{
-												if(bridge_network[i].id!= bridge_network[q].id and bridge_network[q].id == lookin.adj_bridges[p] and lookIntoTable(bridge_network[q].forwarding_table, s).id == '\0')
-												{
-													ftable e; e.host = s;
-													//for(int j=0; j<lan_network.size();j++)
-													//	if(lan_network[j].id == data.prev ) e.fport=lan_network[j];
-													e.fport = lookin;
-													bridge_network[q].forwarding_table.push_back(e);
-													if(tr==1) cout<<timestamp<<" B"<<bridge_network[q].id<<" r "<<s<<"->"<<d<<" "<<data.prev<<endl;
-												}
-											}
+											ftable e; e.host = s;
+											//for(int j=0; j<lan_network.size();j++)
+											//	if(lan_network[j].id == data.prev ) e.fport=lan_network[j];
+											e.fport = lookin;
+											bridge_network[q].forwarding_table.push_back(e);
+											if(tr==1) cout<<timestamp<<" B"<<bridge_network[q].id<<" r "<<s<<"->"<<d<<" "<<data.prev<<endl;
 										}
 									}
 								}
-								if(f==0 and data.prev!=lookin.id)
-								{
-									traces t;
-									t.time = timestamp;
-									t.bridge = bridge_network[i].id;
-									t.status = 'r';
-									message m;
-									t.m.root = s;
-									t.m.dist = d;
-									//trace_data.push_back(t);
-									if(tr==1) cout<<t.time<<" B"<<t.bridge<<" "<<t.status<<" "<<t.m.root<<"->"<<t.m.dist<<" "<<data.prev<<endl;
-									t.status = 's';
-									//trace_data.push_back(t);
-									if(tr==1) cout<<t.time<<" B"<<t.bridge<<" "<<t.status<<" "<<t.m.root<<"->"<<t.m.dist<<" "<<lookin.id<<endl;
-
-									for(int j=0; j<lookin.adj_bridges.size();j++)
-									{
-										data_packet datasend;
-										datasend.source = data.source;
-										datasend.destination = data.destination;
-										datasend.prev = lookin.id;
-										datasend.bridge = lookin.adj_bridges[j];
-										//cout<<lookin.adj_bridges[j]<<" "<<bridge_network[i].id<<endl;
-										if(lookin.adj_bridges[j] != bridge_network[i].id) sent.push(datasend);
-									}
-								}
-								if(lookIntoTable(bridge_network[i].forwarding_table, s).id == '\0')
-								{
-									ftable e; e.host = s;
-									for(int j=0; j<lan_network.size();j++)
-										if(lan_network[j].id == data.prev ) e.fport=lan_network[j];
-									bridge_network[i].forwarding_table.push_back(e);
-								}
-							}
-							else
-							{
-								ftable e; e.host = s;
-								for(int j=0; j<lan_network.size();j++)
-									if(lan_network[j].id == data.prev ) e.fport=lan_network[j];
-
-								bridge_network[i].forwarding_table.push_back(e);
-
-								for(int j=0; j<bridge_network[i].adj_lans.size(); j++)
-								{
-									data_packet datasend;
-									datasend.source = data.source;
-									datasend.destination = data.destination;
-									datasend.prev = bridge_network[i].adj_lans[j];
-									datasend.bridge = -1 * bridge_network[i].id;
-									if(data.prev != bridge_network[i].adj_lans[j]) sent.push(datasend);
-								}
-
-								traces t;
-								t.time = timestamp;
-								t.bridge = bridge_network[i].id;
-								t.status = 'r';
-								message m;
-								t.m.root = s;
-								t.m.dist = d;
-								if(tr==1) cout<<t.time<<" B"<<t.bridge<<" "<<t.status<<" "<<t.m.root<<"->"<<t.m.dist<<" "<<data.prev<<endl;
-								//trace_data.push_back(t);
-								t.status = 's';
-								if(tr==1) cout<<t.time<<" B"<<t.bridge<<" "<<t.status<<" "<<t.m.root<<"->"<<t.m.dist<<" - "<<endl;
-								//trace_data.push_back(t);
 							}
 						}
+						if(f==0 and data.prev!=lookin.id)
+						{
+							traces t;
+							t.time = timestamp;
+							t.bridge = bridge_network[datai].id;
+							t.status = 'r';
+							message m;
+							t.m.root = s;
+							t.m.dist = d;
+							//trace_data.push_back(t);
+							if(tr==1) cout<<t.time<<" B"<<t.bridge<<" "<<t.status<<" "<<t.m.root<<"->"<<t.m.dist<<" "<<data.prev<<endl;
+							t.status = 's';
+							//trace_data.push_back(t);
+							if(tr==1) cout<<t.time<<" B"<<t.bridge<<" "<<t.status<<" "<<t.m.root<<"->"<<t.m.dist<<" "<<lookin.id<<endl;
+
+							for(int j=0; j<lookin.adj_bridges.size();j++)
+							{
+								data_packet datasend;
+								datasend.source = data.source;
+								datasend.prev = lookin.id;
+								datasend.destination = data.destination;								
+								datasend.bridge = lookin.adj_bridges[j];
+								//cout<<lookin.adj_bridges[j]<<" "<<bridge_network[i].id<<endl;
+								if(lookin.adj_bridges[j] != bridge_network[datai].id) sent.push(datasend);
+							}
+						}
+						if(lookIntoTable(bridge_network[datai].forwarding_table, s).id == '\0')
+						{
+							ftable e; e.host = s;
+							for(int j=0; j<lan_network.size();j++)
+								if(lan_network[j].id == data.prev ) e.fport=lan_network[j];
+							bridge_network[datai].forwarding_table.push_back(e);
+						}
 					}
+					else
+					{
+						ftable e; e.host = s;
+						for(int j=0; j<lan_network.size();j++)
+							if(lan_network[j].id == data.prev ) e.fport=lan_network[j];
+
+						bridge_network[datai].forwarding_table.push_back(e);
+
+						for(int j=0; j<bridge_network[datai].adj_lans.size(); j++)
+						{
+							data_packet datasend;
+							datasend.source = data.source;
+							datasend.destination = data.destination;
+							datasend.prev = bridge_network[datai].adj_lans[j];
+							datasend.bridge = -1 * bridge_network[datai].id;
+							if(data.prev != bridge_network[datai].adj_lans[j]) sent.push(datasend);
+						}
+
+						traces t;
+						t.time = timestamp;
+						t.bridge = bridge_network[datai].id;
+						t.status = 'r';
+						message m;
+						t.m.root = s;
+						t.m.dist = d;
+						if(tr==1) cout<<t.time<<" B"<<t.bridge<<" "<<t.status<<" "<<t.m.root<<"->"<<t.m.dist<<" "<<data.prev<<endl;
+						//trace_data.push_back(t);
+						t.status = 's';
+						if(tr==1) cout<<t.time<<" B"<<t.bridge<<" "<<t.status<<" "<<t.m.root<<"->"<<t.m.dist<<" - "<<endl;
+						//trace_data.push_back(t);
+					}
+
 				}
 				timestamp++;
 				fl=0;
@@ -565,7 +574,7 @@ int main(){
 			{
 				cout<<"B"<<bridge_network[i].id<<":"<<endl;
 				cout<<"HOST ID | FORWARDING PORT"<<endl;
-				for(int j=0; j<bridge_network[i].forwarding_table.size(); j++)
+				for(int j=bridge_network[i].forwarding_table.size()-1; j>=0; j--)
 				{
 					ftable f = bridge_network[i].forwarding_table[j];
 					cout<<"H"<<f.host<<" | "<<f.fport.id<<endl;

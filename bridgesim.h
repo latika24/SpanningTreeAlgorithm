@@ -21,3 +21,5 @@ public:
 	char prev;
 	int bridge;
 };
+
+message UpdateConfig(message m,vector<bridge>& bridge_network);
